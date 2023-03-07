@@ -1,3 +1,5 @@
+import http from "http";
+import SocketIO from "socket.io";
 import express from "express";
 
 const app = express();
@@ -8,6 +10,19 @@ app.use("/public", express.static(__dirname + "/public"));
 app.get("/", (req, res) => res.render("home"));
 app.get("/*", (req, res) => res.redirect("/"));
 
-console.log("Listening!!");
+const server = http.createServer(app);
+const io = SocketIO(server);
 
-app.listen(3000);
+io.on("connection", (socket) => {
+  socket.on("join_room", (roomName, done) => {
+    socket.join(roomName);
+    done();
+    socket.to(roomName).emit("welcome");
+  });
+});
+
+const handleListen = () => {
+  console.log("Listening!!!");
+};
+
+server.listen(3000, handleListen);
