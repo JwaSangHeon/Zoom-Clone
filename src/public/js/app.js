@@ -100,7 +100,8 @@ const welcomeForm = welcome.querySelector("form");
 async function startMedia() {
   welcome.hidden = true;
   call.hidden = false;
-  getMedia();
+  await getMedia();
+  makeConnection();
 }
 
 function handleSubmitRoomName(e) {
@@ -115,6 +116,22 @@ welcomeForm.addEventListener("submit", handleSubmitRoomName);
 
 // Socket Code
 
-socket.on("welcome", () => {
-  console.log("someone joined");
+socket.on("welcome", async () => {
+  const offer = await myPeerConnection.createOffer();
+  myPeerConnection.setLocalDescription(offer);
+  socket.emit("offer", offer, roomName);
+  console.log(offer);
 });
+
+socket.on("offer", (offer) => {
+  console.log(offer);
+});
+
+// RTC Code
+
+function makeConnection() {
+  myPeerConnection = new RTCPeerConnection();
+  myStream
+    .getTracks()
+    .forEach((track) => myPeerConnection.addTrack(track, myStream));
+}
