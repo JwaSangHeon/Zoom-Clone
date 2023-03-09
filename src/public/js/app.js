@@ -125,20 +125,36 @@ socket.on("welcome", async () => {
 });
 
 socket.on("offer", async (offer) => {
+  console.log("received offer");
   myPeerConnection.setRemoteDescription(offer);
   const answer = await myPeerConnection.createAnswer();
-  myPeerConnection.setLocalDescription(offer);
+  myPeerConnection.setLocalDescription(answer);
   socket.emit("answer", answer, roomName);
 });
 
 socket.on("answer", (answer) => {
   myPeerConnection.setRemoteDescription(answer);
 });
+
+socket.on("ice", (ice) => {
+  console.log("received candidate");
+  myPeerConnection.addIceCandidate(ice);
+});
 // RTC Code
 
 function makeConnection() {
   myPeerConnection = new RTCPeerConnection();
+  myPeerConnection.addEventListener("icecandidate", handleIce);
+  myPeerConnection.addEventListener("track", (data) => {
+    const peerFace = document.getElementById("peerFace");
+    peerFace.srcObject = data.streams[0];
+  });
   myStream
     .getTracks()
     .forEach((track) => myPeerConnection.addTrack(track, myStream));
+}
+
+function handleIce(data) {
+  console.log("sent candidate");
+  socket.emit("ice", data.candidate, roomName);
 }
