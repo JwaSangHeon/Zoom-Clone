@@ -149,7 +149,13 @@ socket.on("ice", (ice) => {
 // RTC Code
 
 function makeConnection() {
-  myPeerConnection = new RTCPeerConnection();
+  myPeerConnection = new RTCPeerConnection({
+    iceServers: [
+      {
+        urls: ["stun:ntk-turn-1.xirsys.com"],
+      },
+    ],
+  });
   myPeerConnection.addEventListener("icecandidate", handleIce);
   myPeerConnection.addEventListener("track", (data) => {
     const peerFace = document.getElementById("peerFace");
